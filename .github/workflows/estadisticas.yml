@@ -1,0 +1,59 @@
+name: Estadísticas del README
+
+# Dibuja el panel de actividad del README con la API de GitHub (sin servicios de terceros)
+# y lo publica en la rama `estadisticas`, que solo contiene esa imagen (no toca main ni despliega nada).
+on:
+  schedule:
+    - cron: "17 10 * * *" # una vez al día
+  push:
+    branches: [main]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# Mínimo privilegio: nada por defecto; el job solo lee la actividad y escribe la rama de la imagen.
+permissions: {}
+
+# Las ejecuciones se ponen en fila (no se cancelan): un push y su release seguidos terminan ambos en verde.
+concurrency:
+  group: estadisticas
+  cancel-in-progress: false
+
+jobs:
+  panel:
+    name: Generar panel
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # solo para publicar la rama `estadisticas`
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Generar imagen
+        run: node scripts/estadisticas.mjs > "$RUNNER_TEMP/estadisticas.svg"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+
+      - name: Publicar en la rama estadisticas
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          dir="$(mktemp -d)" && cd "$dir"
+          git init -q -b estadisticas
+          cp "$RUNNER_TEMP/estadisticas.svg" estadisticas.svg
+          git add estadisticas.svg
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Panel de estadísticas del README [skip ci]"
+          # Un solo commit que se reemplaza en cada ejecución: la rama no acumula historial.
+          git push -q -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${REPO}.git" HEAD:refs/heads/estadisticas

@@ -1,0 +1,4 @@
+# Salidas de compilación
+dist/
+*.exe
+*.syso

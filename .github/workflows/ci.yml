@@ -1,0 +1,45 @@
+name: CI
+
+# Verifica que PdfEpub compile en Windows en cada push y Pull Request (no publica nada).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compilar:
+    name: Compilar (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+
+      - name: Formato
+        shell: bash
+        run: test -z "$(gofmt -l .)" || { gofmt -l .; echo "Archivos sin gofmt"; exit 1; }
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Pruebas
+        run: go test ./...
+
+      - name: Compilar
+        run: go build -trimpath -ldflags "-H windowsgui -s -w" -o dist/PdfEpub.exe .

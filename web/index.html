@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PdfEpub</title>
+<link rel="icon" href="logo.svg">
+<link rel="stylesheet" href="app.css">
+</head>
+<body class="cargando">
+
+<div class="redim redim-arriba" data-borde="arriba"></div>
+<div class="redim redim-arriba-izq" data-borde="arriba-izq"></div>
+<div class="redim redim-arriba-der" data-borde="arriba-der"></div>
+
+<header class="barra" id="barra">
+  <span class="barra-espacio"></span>
+  <div class="marca"><img class="marca-logo" src="logo.svg" alt=""><span class="marca-texto">pdfepub</span></div>
+  <div class="controles-caja">
+    <div class="controles" id="controles" hidden>
+      <button type="button" id="btn-min" aria-label="Minimizar" data-t-aria="minimizar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg></button>
+      <button type="button" id="btn-max" aria-label="Maximizar" data-t-aria="maximizar"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11"/></svg></button>
+      <button type="button" id="btn-cerrar" class="cerrar" aria-label="Cerrar" data-t-aria="cerrar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<div class="cuerpo">
+  <!-- Sin libro: soltar un PDF -->
+  <section class="inicio" id="inicio">
+    <div class="soltar" id="soltar">
+      <svg class="soltar-icono" viewBox="0 0 48 48" aria-hidden="true"><path d="M13 6h15l9 9v27H13z"/><path d="M28 6v9h9"/><path d="M19 24h12M19 30h12M19 36h7"/></svg>
+      <p><b data-t="soltarTitulo">Suelta aquí un libro en PDF</b><span data-t="soltarElige">o elige</span>
+        <button class="enlace" id="btn-elegir" type="button" data-t="unArchivo">un archivo</button></p>
+      <input id="in-pdf" type="file" accept=".pdf,application/pdf" hidden>
+    </div>
+    <div class="modos-inicio">
+      <div><b data-t="modoFluido">texto fluido</b><p data-t="notaFluido">El texto se adapta a la pantalla y al tamaño de letra del lector. Ideal para novelas, ensayos y apuntes.</p></div>
+      <div><b data-t="modoFijo">páginas fijas</b><p data-t="notaFijo">Cada página queda idéntica al PDF. Ideal para cómics, revistas, libros ilustrados y escaneados.</p></div>
+    </div>
+    <p class="privado" data-t="privado">Todo ocurre en tu PC: el PDF no sale del equipo.</p>
+  </section>
+
+  <!-- Con libro: el editor -->
+  <div class="editor" id="editor" hidden>
+    <aside class="lateral">
+      <div class="archivo">
+        <h1 class="ruta" data-t="libro">libro</h1>
+        <p class="archivo-nombre" id="archivo-nombre"></p>
+        <p class="archivo-detalle" id="archivo-detalle"></p>
+        <button class="enlace" id="btn-otro" type="button" data-t="abrirOtro">abrir otro pdf</button>
+      </div>
+
+      <nav class="secciones" id="secciones" role="tablist">
+        <button type="button" role="tab" data-seccion="datos"><span class="sec-num">01</span><span class="sec-nombre" data-t="secDatos">datos del libro</span><small id="sec-datos"></small></button>
+        <button type="button" role="tab" data-seccion="portada"><span class="sec-num">02</span><span class="sec-nombre" data-t="secPortada">portada</span><small id="sec-portada"></small></button>
+        <button type="button" role="tab" data-seccion="capitulos"><span class="sec-num">03</span><span class="sec-nombre" data-t="secCapitulos">capítulos</span><small id="sec-capitulos"></small></button>
+      </nav>
+
+      <fieldset class="modos">
+        <legend data-t="conversion">conversión</legend>
+        <div class="modos-fila">
+          <label><input type="radio" name="modo" value="fluido"><span><i class="glifo glifo-fluido"></i><span data-t="modoFluido">texto fluido</span><small data-t="modoFluidoCorto">se adapta a la pantalla</small></span></label>
+          <label><input type="radio" name="modo" value="fijo"><span><i class="glifo glifo-fijo"></i><span data-t="modoFijo">páginas fijas</span><small data-t="modoFijoCorto">idéntico al pdf</small></span></label>
+        </div>
+      </fieldset>
+      <div class="calidad" id="calidad" hidden>
+        <span data-t="nitidez">nitidez</span>
+        <label><input type="radio" name="calidad" value="normal" checked><span data-t="nitidezNormal">normal</span></label>
+        <label><input type="radio" name="calidad" value="alta"><span data-t="nitidezAlta">alta</span></label>
+      </div>
+      <p class="nota" id="nota-modo"></p>
+
+      <div class="crear-caja">
+        <p class="destino"><span data-t="seGuarda">se guarda en</span>
+          <span class="destino-acciones">
+            <button class="enlace" id="btn-cambiar-carpeta" type="button" data-t="cambiar">cambiar</button>
+            <button class="enlace" id="btn-abrir-carpeta" type="button" data-t="abrirCarpeta">abrir carpeta</button>
+          </span>
+          <b id="ruta-destino" title="">…</b>
+        </p>
+        <button class="btn-crear" id="btn-crear" type="button" data-t="crearEpub">crear epub</button>
+        <div class="resultado" id="resultado" hidden>
+          <span class="est lista" data-t="estListo">listo</span>
+          <p><b id="res-nombre"></b><small id="res-peso"></small></p>
+          <button class="btn" id="btn-mostrar" type="button" data-t="mostrar">mostrar</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="principal">
+      <!-- 01 Datos del libro -->
+      <section class="vista" id="v-datos" hidden>
+        <div class="vista-cabecera"><h2 class="ruta" data-t="secDatos">datos del libro</h2><p class="vista-ayuda" data-t="ayudaDatos">Así aparece el libro en tu lector y en tu biblioteca.</p></div>
+        <form class="formulario" id="form-datos" autocomplete="off">
+          <label class="ancho"><span data-t="campoTitulo">título</span><input name="titulo" required maxlength="300"></label>
+          <label class="ancho"><span data-t="campoAutor">autor</span><input name="autor" maxlength="300"><small data-t="ayudaAutor">Si son varios, sepáralos con punto y coma.</small></label>
+          <label><span data-t="campoIdioma">idioma</span><select name="idioma" id="sel-idioma"></select></label>
+          <label><span data-t="campoFecha">fecha</span><input name="fecha" maxlength="10" placeholder="2026-10-20"><small data-t="ayudaFecha">Año, o año-mes-día.</small></label>
+          <label><span data-t="campoEditorial">editorial</span><input name="editorial" maxlength="200"></label>
+          <label><span data-t="campoIsbn">isbn</span><input name="isbn" maxlength="20" inputmode="numeric"></label>
+          <label><span data-t="campoSerie">serie</span><input name="serie" maxlength="200"></label>
+          <label><span data-t="campoNumero">número en la serie</span><input name="numero" maxlength="8" inputmode="decimal"></label>
+          <label class="ancho"><span data-t="campoEtiquetas">etiquetas</span><input name="etiquetas" maxlength="400"><small data-t="ayudaEtiquetas">Géneros o temas, separados por comas.</small></label>
+          <label class="ancho"><span data-t="campoDescripcion">descripción</span><textarea name="descripcion" rows="5" maxlength="4000"></textarea></label>
+        </form>
+      </section>
+
+      <!-- 02 Portada -->
+      <section class="vista" id="v-portada" hidden>
+        <div class="vista-cabecera"><h2 class="ruta" data-t="secPortada">portada</h2><p class="vista-ayuda" data-t="ayudaPortada">Arrastra la imagen para encuadrarla.</p></div>
+        <div class="portada">
+          <div class="portada-lienzo" id="portada-caja"><canvas id="lienzo" width="1600" height="2560"></canvas></div>
+          <div class="portada-controles">
+            <fieldset class="grupo">
+              <legend data-t="fondo">fondo</legend>
+              <div class="chips" id="fondo-tipo">
+                <button type="button" data-valor="pagina" data-t="fondoPagina">página del pdf</button>
+                <button type="button" data-valor="imagen" data-t="fondoImagen">imagen</button>
+                <button type="button" data-valor="color" data-t="fondoColor">color</button>
+              </div>
+              <div class="fila" id="fila-pagina">
+                <button class="btn icono" type="button" id="pag-ant" aria-label="‹">‹</button>
+                <input type="number" id="pag-num" min="1" value="1">
+                <span class="tenue" id="pag-total"></span>
+                <button class="btn icono" type="button" id="pag-sig" aria-label="›">›</button>
+              </div>
+              <div class="fila" id="fila-imagen" hidden>
+                <button class="btn" type="button" id="btn-imagen" data-t="elegirImagen">elegir imagen</button>
+                <span class="tenue" id="imagen-nombre" data-t="oSueltala">o suéltala sobre la portada</span>
+                <input type="file" id="in-imagen" accept="image/png,image/jpeg,image/webp" hidden>
+              </div>
+              <div class="fila colores" id="fila-color" hidden></div>
+              <div id="ajustes-imagen">
+                <div class="chips chicos" id="fondo-ajuste">
+                  <button type="button" data-valor="cubrir" data-t="ajusteCubrir">cubrir</button>
+                  <button type="button" data-valor="entera" data-t="ajusteEntera">entera</button>
+                </div>
+                <label class="deslizador"><span data-t="zoom">zoom</span><input type="range" id="zoom" min="1" max="3" step="0.01" value="1"></label>
+                <label class="deslizador"><span data-t="oscurecer">oscurecer</span><input type="range" id="oscurecer" min="0" max="0.75" step="0.01" value="0"></label>
+              </div>
+            </fieldset>
+
+            <fieldset class="grupo">
+              <legend data-t="textoPortada">texto</legend>
+              <div class="chips" id="plantilla">
+                <button type="button" data-valor="ninguna" data-t="plNinguna">sin texto</button>
+                <button type="button" data-valor="clasica" data-t="plClasica">clásica</button>
+                <button type="button" data-valor="moderna" data-t="plModerna">moderna</button>
+                <button type="button" data-valor="banda" data-t="plBanda">banda</button>
+                <button type="button" data-valor="marco" data-t="plMarco">marco</button>
+              </div>
+              <div id="campos-texto">
+                <label class="campo"><span data-t="campoTitulo">título</span><input id="pt-titulo" maxlength="200"></label>
+                <label class="campo"><span data-t="campoSubtitulo">subtítulo</span><input id="pt-subtitulo" maxlength="200"></label>
+                <label class="campo"><span data-t="campoAutor">autor</span><input id="pt-autor" maxlength="200"></label>
+                <div class="chips chicos" id="fuente">
+                  <button type="button" data-valor="cormorant" style="font-family:'Cormorant Garamond';font-weight:700;font-size:15px">Cormorant</button>
+                  <button type="button" data-valor="playfair" style="font-family:'Playfair Display';font-weight:700">Playfair</button>
+                  <button type="button" data-valor="inter" style="font-family:Inter;font-weight:800">Inter</button>
+                  <button type="button" data-valor="mono" style="font-family:'Space Mono';font-weight:700">Mono</button>
+                </div>
+                <div class="fila colores" id="fila-color-texto"><span class="tenue" data-t="colorTexto">letra</span></div>
+                <div class="fila colores" id="fila-color-acento"><span class="tenue" data-t="colorAcento">detalle</span></div>
+                <label class="deslizador"><span data-t="tamanoTexto">tamaño</span><input type="range" id="escala" min="0.6" max="1.5" step="0.01" value="1"></label>
+              </div>
+            </fieldset>
+            <button class="enlace" type="button" id="btn-restablecer" data-t="restablecer">restablecer portada</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 Capítulos -->
+      <section class="vista" id="v-capitulos" hidden>
+        <div class="vista-cabecera"><h2 class="ruta" data-t="secCapitulos">capítulos</h2><p class="vista-ayuda" id="ayuda-capitulos"></p></div>
+        <div class="cap-herramientas">
+          <span id="cap-seleccion" class="tenue" data-t="seleccionaParrafo">Selecciona un párrafo en la vista previa.</span>
+          <button class="btn" id="btn-dividir" type="button" data-t="dividirAntes" disabled>dividir antes del párrafo elegido</button>
+          <span id="cap-pagina-seleccionada" class="tenue" hidden></span>
+          <button class="btn" id="btn-dividir-pagina" type="button" data-t="dividirPagina" hidden>crear capítulo desde esta página</button>
+        </div>
+        <div class="capitulos">
+          <div class="cap-lista-caja">
+            <ol class="cap-lista" id="cap-lista"></ol>
+          </div>
+          <div class="vista-previa">
+            <div class="previa-barra">
+              <button class="btn icono" type="button" id="prev-ant" aria-label="‹">‹</button>
+              <p class="previa-titulo" id="previa-titulo"></p>
+              <span class="tenue" id="previa-info"></span>
+              <button class="btn icono" type="button" id="prev-sig" aria-label="›">›</button>
+            </div>
+            <!-- El pliego: a la izquierda la página del PDF, a la derecha cómo queda en el EPUB -->
+            <div class="pliego">
+              <div class="folio folio-pdf">
+                <p class="folio-etq"><span id="etq-pdf"></span><span data-t="original">original</span></p>
+                <div class="previa-pagina" id="previa-pagina"></div>
+              </div>
+              <div class="folio folio-epub">
+                <p class="folio-etq"><span id="etq-epub"></span><span id="etq-epub-der"></span></p>
+                <iframe id="previa" title="Vista previa" data-t-title="vistaPrevia"></iframe>
+                <div class="paginas-previa" id="paginas-previa" hidden></div>
+              </div>
+              <span class="cinta" aria-hidden="true"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<footer class="pie">
+  <span><span data-t="pieMotor">lectura de pdf con pdf.js de mozilla</span> · <span data-t="piePrivado">todo ocurre en tu pc</span></span>
+  <span class="pie-espacio"></span>
+  <span id="version"></span>
+</footer>
+
+<!-- Progreso de lectura y de creación -->
+<div class="progreso" id="progreso" hidden>
+  <div class="progreso-caja">
+    <p class="progreso-titulo" id="progreso-titulo"></p>
+    <p class="progreso-detalle" id="progreso-detalle"></p>
+    <div class="barra-progreso"><span id="progreso-barra"></span></div>
+    <button class="btn" type="button" id="btn-cancelar" data-t="cancelar">cancelar</button>
+  </div>
+</div>
+
+<dialog class="dialogo" id="dlg-clave">
+  <form method="dialog">
+    <p class="dialogo-titulo" data-t="claveTitulo">Este PDF tiene contraseña</p>
+    <p class="tenue" id="clave-ayuda" data-t="claveAyuda">Escríbela para abrirlo.</p>
+    <input type="password" id="clave" autocomplete="off">
+    <div class="dialogo-botones">
+      <button class="btn" value="cancelar" type="submit" data-t="cancelar">cancelar</button>
+      <button class="btn primario" value="ok" type="submit" data-t="abrir">abrir</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="arrastre" id="arrastre" hidden><p data-t="sueltaPdf">Suelta el PDF para abrirlo</p></div>
+<div class="aviso" id="aviso" role="status" hidden></div>
+
+<script src="i18n.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
