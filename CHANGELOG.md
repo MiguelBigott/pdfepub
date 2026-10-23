@@ -3,6 +3,15 @@
 Todas las versiones siguen [Versionado Semántico](https://semver.org/lang/es/). Cada una tiene su
 etiqueta `vX.Y.Z` y su página en [Releases](../../releases).
 
+## [1.1.2] - 2026-10-23
+
+### Corregido
+- La letra capitular (la letra grande con que empieza un capítulo) se perdía y mezclaba los renglones que tenía al lado. Ahora el párrafo empieza con ella y sigue entero.
+- No se podía cambiar el nombre de un capítulo: al hacer clic en el título, el campo se borraba antes de poder escribir.
+
+### Cambiado
+- Un título que es solo el número del capítulo («4») también separa capítulos.
+
 ## [1.1.1] - 2026-10-22
 
 ### Corregido

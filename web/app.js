@@ -294,8 +294,9 @@ function pintarCapitulos() {
     titulo.addEventListener("input", () => {
       c.titulo = titulo.value;
       actualizarResumen();
+      if (i !== capActual) return;
       $("#previa-titulo").textContent = c.titulo;
-      if (modo === "fluido" && i === capActual) $("#etq-epub").textContent = t("etqEpub", { titulo: c.titulo });
+      if (modo === "fluido") $("#etq-epub").textContent = t("etqEpub", { titulo: c.titulo });
     });
     const info = document.createElement("span");
     info.className = "cap-info";
@@ -320,18 +321,25 @@ function pintarCapitulos() {
     }
     ol.append(li);
   });
+  marcarSeleccion();
+  $("#btn-crear").disabled = !capitulos.some((c) => c.incluir);
+}
+
+// marcarSeleccion muestra qué capítulo está elegido sin volver a dibujar la lista: así no se
+// pierde el título que se está escribiendo.
+function marcarSeleccion() {
+  $$("#cap-lista .cap").forEach((li) => li.classList.toggle("sel", Number(li.dataset.indice) === capActual));
   $("#previa-titulo").textContent = capitulos[capActual]?.titulo || "";
   $("#previa-info").textContent = capitulos.length ? `${capActual + 1} / ${capitulos.length}` : "";
   $("#prev-ant").disabled = capActual <= 0;
   $("#prev-sig").disabled = capActual >= capitulos.length - 1;
-  $("#btn-crear").disabled = !capitulos.some((c) => c.incluir);
 }
 
 function seleccionarCapitulo(i) {
-  if (i < 0 || i >= capitulos.length) return;
+  if (i < 0 || i >= capitulos.length || i === capActual) return;
   capActual = i;
   paginaElegida = capitulos[i].pagina || 0;
-  pintarCapitulos();
+  marcarSeleccion();
   if (modo === "fluido") pintarVistaFluida();
   else pintarVistaFija().catch((e) => avisar(e.message, true));
 }

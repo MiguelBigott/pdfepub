@@ -194,6 +194,19 @@ func lineasDePagina(doc *Documento, num int, m metricas) ([]*linea, bool) {
 		return trozos[i].X < trozos[j].X
 	})
 
+	// Las letras capitulares se apartan antes de agrupar: su línea base cae dos o tres renglones
+	// más abajo y, con su tamaño, juntarían esos renglones en una sola línea.
+	var capitulares []Trozo
+	resto := trozos[:0]
+	for _, t := range trozos {
+		if s := strings.TrimSpace(t.S); t.T >= 2*m.cuerpo && utf8.RuneCountInString(s) <= 2 && esLetra(s) {
+			capitulares = append(capitulares, t)
+			continue
+		}
+		resto = append(resto, t)
+	}
+	trozos = resto
+
 	// Grupos de trozos con la misma línea base (con margen para índices y superíndices).
 	var grupos [][]Trozo
 	var yRef, tRef float64
@@ -221,7 +234,7 @@ func lineasDePagina(doc *Documento, num int, m metricas) ([]*linea, bool) {
 			}
 		}
 	}
-	segmentos = separarCapitulares(segmentos, m)
+	segmentos = pegarCapitulares(doc, segmentos, capitulares, num, m)
 
 	// Los segmentos ya están en orden (de arriba abajo y de izquierda a derecha): cada imagen
 	// entra antes del primer texto que está más abajo que su borde superior.
@@ -349,37 +362,43 @@ func armarLinea(doc *Documento, g []Trozo, pagina int) *linea {
 	return l
 }
 
-// separarCapitulares saca las letras capitulares (una letra enorme al empezar un párrafo, que
-// baja varias líneas) y las pega al principio de la primera línea que acompañan.
-func separarCapitulares(segs []*linea, m metricas) []*linea {
-	for i, s := range segs {
-		texto := strings.TrimSpace(s.texto())
-		if s.t < 2*m.cuerpo || utf8.RuneCountInString(texto) > 2 || !esLetra(texto) {
-			continue
-		}
-		var destino *linea
-		for _, o := range segs {
-			if o == s || o.x0 < s.x0 || o.y > s.y+0.1*s.t || o.y < s.y-1.2*s.t || o.t >= 1.5*m.cuerpo {
-				continue
-			}
-			if destino == nil || o.y < destino.y {
-				destino = o
+// pegarCapitulares pone cada letra capitular (una letra enorme al empezar un párrafo, que baja
+// dos o tres renglones) al principio del primer renglón que tiene al lado. Esos renglones se
+// corren a la derecha para dejarle lugar; se alinean con la capitular para que no parezcan
+// párrafos nuevos. Una letra grande sin texto al lado (un título «I», por ejemplo) queda sola.
+func pegarCapitulares(doc *Documento, segs []*linea, caps []Trozo, num int, m metricas) []*linea {
+	for _, c := range caps {
+		texto := strings.TrimSpace(c.S)
+		var junto []*linea
+		for _, s := range segs {
+			if s.t < 1.5*m.cuerpo && s.x0 >= c.X+0.6*c.W && s.x0 <= c.X+c.W+3*m.cuerpo &&
+				s.y >= c.Y-1.15*c.T && s.y <= c.Y+1.3*m.cuerpo {
+				junto = append(junto, s)
 			}
 		}
-		if destino == nil {
+		if len(junto) == 0 {
+			l := armarLinea(doc, []Trozo{c}, num)
+			pos := len(segs)
+			for k, s := range segs {
+				if s.y > l.y {
+					pos = k
+					break
+				}
+			}
+			segs = append(segs[:pos], append([]*linea{l}, segs[pos:]...)...)
 			continue
 		}
-		destino.tramos = append([]tramo{{s: texto, negrita: s.tramos[0].negrita, cursiva: s.tramos[0].cursiva}}, destino.tramos...)
-		destino.x0 = s.x0
-		segs[i] = nil
-	}
-	res := segs[:0]
-	for _, s := range segs {
-		if s != nil {
-			res = append(res, s)
+		primero := junto[0]
+		for _, s := range junto {
+			if s.y < primero.y {
+				primero = s
+			}
+			s.x0 = c.X
 		}
+		f := fuenteDe(doc, c.F)
+		primero.tramos = append([]tramo{{s: texto, negrita: f.Negrita, cursiva: f.Cursiva}}, primero.tramos...)
 	}
-	return res
+	return segs
 }
 
 func esLetra(s string) bool {
@@ -637,7 +656,7 @@ func (c *contexto) medirInterlineado(ls []*linea) float64 {
 func nivelesTitulo(ls []*linea, m metricas) map[float64]int {
 	tams := map[float64]bool{}
 	for _, l := range ls {
-		if l.imagen == nil && l.t >= 1.15*m.cuerpo && tieneLetras(l.texto()) {
+		if l.imagen == nil && l.t >= 1.15*m.cuerpo && esTextoDeTitulo(l.texto()) {
 			tams[math.Round(l.t)] = true
 		}
 	}
@@ -662,6 +681,15 @@ func tieneLetras(s string) bool {
 	return false
 }
 
+var reNumeroCapitulo = regexp.MustCompile(`^\d{1,3}\.?$`)
+
+// esTextoDeTitulo: un título tiene letras, o es solo el número del capítulo («4»). Los números
+// de página ya se quitaron antes, con los encabezados.
+func esTextoDeTitulo(s string) bool {
+	s = strings.TrimSpace(s)
+	return tieneLetras(s) || reNumeroCapitulo.MatchString(s)
+}
+
 func ultimaLetra(s string) rune {
 	r, _ := utf8.DecodeLastRuneInString(s)
 	return r
@@ -678,7 +706,7 @@ func (c *contexto) nivelGrande(l *linea) int {
 // esTitulo: letra más grande que el cuerpo, o una línea corta y suelta en negrita, o «Capítulo 3».
 func (c *contexto) esTitulo(l *linea, i int, ls []*linea) bool {
 	texto := strings.TrimSpace(l.texto())
-	if l.imagen != nil || !tieneLetras(texto) {
+	if l.imagen != nil || !esTextoDeTitulo(texto) {
 		return false
 	}
 	if c.nivelGrande(l) > 0 {
