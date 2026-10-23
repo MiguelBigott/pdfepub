@@ -6,7 +6,7 @@
 
 > Convierte libros **PDF a EPUB** en tu PC: rearma los párrafos, los títulos y los capítulos, y te deja diseñar la portada y completar los datos del libro antes de crearlo.
 
-[![Versión](https://img.shields.io/badge/versión-v1.1.0-8a6fd1)](CHANGELOG.md)
+[![Versión](https://img.shields.io/badge/versión-v1.1.1-8a6fd1)](CHANGELOG.md)
 [![Go](https://img.shields.io/badge/Go-1.27+-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![Windows](https://img.shields.io/badge/Windows-10%20·%2011-0078D4)](#-instalación)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-3f9d6e)](LICENSE)

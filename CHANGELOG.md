@@ -3,6 +3,12 @@
 Todas las versiones siguen [Versionado Semántico](https://semver.org/lang/es/). Cada una tiene su
 etiqueta `vX.Y.Z` y su página en [Releases](../../releases).
 
+## [1.1.1] - 2026-10-22
+
+### Corregido
+- Los PDF con imágenes no se podían convertir: al leerlos aparecía «Cannot read properties of undefined (reading '0')».
+- Después de un error, no se podía abrir otro PDF sin cerrar la app.
+
 ## [1.1.0] - 2026-10-22
 
 Primera versión publicada.

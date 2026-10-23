@@ -1,4 +1,4 @@
-import { abrirPDF, datosDelPDF, indiceDelPDF, dibujar, comoBlob, extraer, versionPdfjs } from "./extraer.js";
+import { abrirPDF, cerrarPDF, datosDelPDF, indiceDelPDF, dibujar, comoBlob, extraer, versionPdfjs } from "./extraer.js";
 import { EditorPortada, portadaInicial, cargarFuentes, COLORES_FONDO, COLORES_TEXTO, COLORES_ACENTO } from "./portada.js";
 
 const $ = (s, raiz = document) => raiz.querySelector(s);
@@ -118,7 +118,7 @@ async function abrirArchivo(file) {
   progreso(t("cargando"), file.name, 0, true);
   try {
     if (pdf) {
-      await pdf.destroy().catch(() => {});
+      await cerrarPDF(pdf);
       pdf = null;
     }
     archivoActual = null;
@@ -176,7 +176,7 @@ async function abrirArchivo(file) {
   } catch (err) {
     cerrarProgreso();
     if (err?.name !== "AbortError") avisar(err?.message || t("errorGeneral", { detalle: "" }), true);
-    if (pdf && !analisis) { pdf.destroy().catch(() => {}); pdf = null; }
+    if (pdf && !analisis) { cerrarPDF(pdf); pdf = null; }
   }
 }
 
@@ -749,7 +749,7 @@ function restablecerEditor() {
   analisis = null;
   documento = null;
   capitulos = [];
-  if (pdf) pdf.destroy().catch(() => {});
+  if (pdf) cerrarPDF(pdf);
   pdf = null;
 }
 

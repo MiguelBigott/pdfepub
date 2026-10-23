@@ -23,7 +23,7 @@ import (
 	webview2 "github.com/jchv/go-webview2"
 )
 
-const Version = "1.1.0"
+const Version = "1.1.1"
 
 // Puerto fijo: sirve también para detectar si la app ya está abierta.
 var puerto = "127.0.0.1:47834"

@@ -105,6 +105,9 @@ export async function dibujar(pagina, { lado, escala, lienzo } = {}) {
   return { lienzo: c, escala: s };
 }
 
+// cerrarPDF libera el documento. En pdf.js 6 ya no tiene destroy(): se cierra su tarea de carga.
+export const cerrarPDF = (pdf) => Promise.resolve(pdf?.loadingTask?.destroy()).catch(() => {});
+
 export const comoBlob = (c, tipo = "image/jpeg", calidad = 0.9) =>
   new Promise((ok, mal) => c.toBlob((b) => (b ? ok(b) : mal(new Error("toBlob"))), tipo, calidad));
 
@@ -131,7 +134,9 @@ function cajasDeImagen(ops, vp) {
       case OPS.paintInlineImageXObject:
       case OPS.paintImageXObjectRepeat:
       case OPS.paintImageMaskXObject: {
-        const ps = [[0, 0], [1, 0], [0, 1], [1, 1]].map((p) => Util.applyTransform(p, ctm));
+        // Las esquinas de la imagen (un cuadrado de 1×1) por la matriz actual. Se calcula aquí:
+        // desde pdf.js 5, Util.applyTransform cambia el punto que recibe y no devuelve nada.
+        const ps = [[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => [x * ctm[0] + y * ctm[2] + ctm[4], x * ctm[1] + y * ctm[3] + ctm[5]]);
         const xs = ps.map((p) => p[0]), ys = ps.map((p) => p[1]);
         cajas.push({ x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) });
         break;
